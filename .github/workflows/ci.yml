@@ -1,0 +1,50 @@
+name: CI Pipeline  # ワークフローの名前（GitHub上で表示される）
+
+# いつ実行するか
+on:
+  push:
+    branches: [main]       # mainブランチへのPush
+  pull_request:
+    branches: [main]       # mainブランチへのPR
+
+jobs:
+  test:
+    runs-on: ubuntu-latest   # GitHub提供のLinux環境で実行
+
+    # PostgreSQLをサービスコンテナとして起動
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: medical_user
+          POSTGRES_PASSWORD: medical_pass
+          POSTGRES_DB: medical_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://medical_user:medical_pass@localhost:5432/medical_db
+
+    steps:
+      # ① コードを取得
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ② Pythonをセットアップ
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      # ③ 依存ライブラリをインストール
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest httpx
+
+      # ④ テスト実行
+      - name: Run tests
+        run: python -m pytest tests/ -v

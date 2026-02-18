@@ -1,6 +1,6 @@
 import pandas as pd
 
-def load_csvv(file_path: str):
+def load_csv(file_path: str):
     """CSVファイルを読み込み、Pandas DataFrameを返す"""
     df = pd.read_csv(file_path)
     return df
